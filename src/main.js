@@ -4,7 +4,7 @@ import * as signalR from '@aspnet/signalr';
 import { currentUsers, nameService } from './stores.js';
 
 const signalRUrl = 
-	window.href.location.indexOf("localhost") !== -1 ? "localhost:8888" : "46.101.48.35";
+	window.location.href.indexOf("localhost") !== -1 ? "localhost:8888" : "46.101.48.35";
 const connection = new signalR.HubConnectionBuilder()
 	.withUrl(`http://${signalRUrl}/raceHub`)
     .configureLogging(signalR.LogLevel.Information)
