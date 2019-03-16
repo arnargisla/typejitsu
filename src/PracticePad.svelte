@@ -17,6 +17,8 @@
 		problems: ["Example text to write!"],
 	};
 
+	export let onprogress = () => {};
+
 	export let setProblemIndex = function(index) {
 		currentProblemIndex = index;
 	}
@@ -47,6 +49,7 @@
 				remainingText = remainingText.slice(pendingText.length);
 			  confirmedText = `${confirmedText}${pendingText}`;
 			  pendingText = "";
+			  onprogress(confirmedText.length / currentProblem.length);
 			}
 		}
 	}

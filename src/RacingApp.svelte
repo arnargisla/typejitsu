@@ -1,0 +1,93 @@
+<style>
+
+.main {
+	background-color: rgb(255, 255, 233);
+	max-width: 500px;
+	margin: 10px auto;
+	padding: 1em;
+}
+
+a {
+	margin-right: 1em;
+}
+
+.me {
+	font-weight: bold;
+}
+</style>
+
+<script>
+	import PracticePad from './PracticePad.svelte';
+	import { currentUsers } from './stores.js';
+
+
+	export let racingGroup = "defaultRaceGroup";
+	export let signalrConnection;
+	export let myId = "";
+		
+	const problemSets = [
+		{
+			name: "Text",
+			problems: [
+				"What a wonderful world! A world where you can type and type as you wonder: What does it all mean? Let the letters flow through your fingertips, your fingers like little spiders on the keyboard.", 
+				"What is this, magic? That is the question everyone is asking themselves, is it really magic or is it just a little bit of good luck and some SignalR?",
+			],
+		},
+		{
+			name: "Code",
+			problems: [
+				`function(x) { return x; }`, 
+				`() => { return "Hello, world!"; }`,
+			],
+		},
+		{
+			name: "Numbers & Symbols",
+			problems: [
+				`1820 3949 0695 8231`, 
+				`%*@! <(}! >?|) *@)# []&* =~-\\ /.$\{`,
+			],
+		},
+	];
+
+	let currentProblemSet = problemSets[0];
+	let practicePad;
+	const joinRaceGroup = signalrConnection().then(connection => connection.invoke("joinGroup", racingGroup));
+	
+	function handleClick(e, problemIndex) {
+		practicePad.setProblemIndex(0);
+		currentProblemSet = problemSets[problemIndex];
+		e.preventDefault();
+	}
+	function progressHandler(progress){
+		signalrConnection().then(connection => connection.invoke("Progress", racingGroup, progress));
+	}
+
+	function leftPad(s, length) {
+		return (s.length < length ? Array(length - s.length).join(" ") : "") + s;
+	}
+</script>
+
+<div class="main">
+	<h2>🏍️ Welcome to Racing in TypeDojo</h2>
+
+	{#await joinRaceGroup}
+		<p>...connecting to racing group</p>
+	{:then joined}
+		<div>Type the text below into the text field.</div>
+		<hr>
+		<PracticePad bind:this={practicePad} onprogress={progressHandler} problemSet={currentProblemSet} />
+	{:catch error}
+		<p style="color: red">Error joining racing group {error.message}</p>
+	{/await}
+
+	<hr>
+	<div>
+		Connected users:
+		<ul>
+			{#each Object.keys($currentUsers) as userKey}
+				<li class:me={userKey===myId}>{$currentUsers[userKey].id} {leftPad(($currentUsers[userKey].progress*100).toFixed(1), 5)}%</li>
+			{/each}
+		</ul>
+	</div>
+
+</div>

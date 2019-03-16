@@ -14,7 +14,7 @@ a {
 
 <script>
 	import PracticePad from './PracticePad.svelte';
-	
+		
 	const problemSets = [
 		{
 			name: "Text",
@@ -36,7 +36,7 @@ a {
 				`1820 3949 0695 8231`, 
 				`%*@! <(}! >?|) *@)# []&* =~-\\ /.$\{`,
 			],
-		}
+		},
 	];
 
 	let currentProblemSet = problemSets[0];
