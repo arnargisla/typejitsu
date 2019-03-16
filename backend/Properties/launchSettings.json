@@ -26,7 +26,7 @@
     "production": {
       "commandName": "Project",
       "launchBrowser": false,
-      "applicationUrl": "http://46.101.48.35:8888;",
+      "applicationUrl": "http://46.101.48.35:80;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Release"
       }
