@@ -13,6 +13,7 @@ window.g_connection = connection;
 var stateConversion = {0: 'connecting', 1: 'connected', 2: 'reconnecting', 4: 'disconnected'};
 let myId = "";
 let app;
+let name = "";
 
 
 async function waitForConnection() {
@@ -25,7 +26,17 @@ async function waitForConnection() {
 	return connection;
 }
 
+function getName() {
+	let name = sessionStorage ? sessionStorage.getItem('name') : "";
+	if(!name) {
+		name = prompt("What is your name?"); 
+		sessionStorage && sessionStorage.setItem('name', name);
+	}
+	return name;
+}
+
 if (window.location.hash.indexOf("#race")===0) {
+	name = getName();
 	app	= new RacingApp({
 		target: document.body,
 		props: {
@@ -59,8 +70,6 @@ async function wait(seconds) {
 	});
 }
 
-
-
 connection.onclose(async () => {
     await start();
 });
@@ -74,7 +83,7 @@ connection.on("ReceiveMessage", function (message) {
 connection.on("YouAre", userId => {
 	myId = userId;
 	currentUsers.update(currentUsers => {
-		currentUsers[userId] = { id: userId, progress: 0, };
+		currentUsers[userId] = { id: userId, progress: 0, name, };
 		return currentUsers;
 	});
 	app.myId && app.$set({myId});

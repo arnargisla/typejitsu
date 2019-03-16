@@ -59,6 +59,8 @@ namespace typedojo
             {
                 routes.MapHub<RaceHub>("/raceHub");
             });
+            app.UseDefaultFiles();
+            app.UseStaticFiles();
         }
     }
 }

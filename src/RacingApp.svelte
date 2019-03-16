@@ -11,13 +11,11 @@ a {
 	margin-right: 1em;
 }
 
-.me {
-	font-weight: bold;
-}
 </style>
 
 <script>
 	import PracticePad from './PracticePad.svelte';
+	import UserStats from './UserStats.svelte';
 	import { currentUsers } from './stores.js';
 
 
@@ -52,18 +50,15 @@ a {
 	let currentProblemSet = problemSets[0];
 	let practicePad;
 	const joinRaceGroup = signalrConnection().then(connection => connection.invoke("joinGroup", racingGroup));
-	
+
 	function handleClick(e, problemIndex) {
 		practicePad.setProblemIndex(0);
 		currentProblemSet = problemSets[problemIndex];
 		e.preventDefault();
 	}
+
 	function progressHandler(progress){
 		signalrConnection().then(connection => connection.invoke("Progress", racingGroup, progress));
-	}
-
-	function leftPad(s, length) {
-		return (s.length < length ? Array(length - s.length).join(" ") : "") + s;
 	}
 </script>
 
@@ -83,11 +78,9 @@ a {
 	<hr>
 	<div>
 		Connected users:
-		<ul>
-			{#each Object.keys($currentUsers) as userKey}
-				<li class:me={userKey===myId}>{$currentUsers[userKey].id} {leftPad(($currentUsers[userKey].progress*100).toFixed(1), 5)}%</li>
-			{/each}
-		</ul>
+		{#each Object.keys($currentUsers) as userKey}
+			<UserStats isme={userKey===myId} user={$currentUsers[userKey]} />
+		{/each}
 	</div>
 
 </div>
