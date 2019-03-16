@@ -15,7 +15,11 @@
     "build": "rollup -c",
     "autobuild": "rollup -c -w",
     "dev": "run-p start:dev autobuild",
+    "dev-server": "dotnet run -p backend/typedojo.csproj",
     "start": "sirv public",
     "start:dev": "sirv public --dev"
+  },
+  "dependencies": {
+    "@aspnet/signalr": "^1.1.2"
   }
 }
