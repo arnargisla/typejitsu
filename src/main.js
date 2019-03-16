@@ -3,18 +3,32 @@ import RacingApp from './RacingApp.svelte';
 import * as signalR from '@aspnet/signalr';
 import { currentUsers, nameService } from './stores.js';
 
+const signalRUrl = 
+	window.href.location.indexOf("localhost") !== -1 ? "localhost:8888" : "46.101.48.35";
 const connection = new signalR.HubConnectionBuilder()
-	.withUrl("http://46.101.48.35/raceHub")
+	.withUrl(`http://${signalRUrl}/raceHub`)
     .configureLogging(signalR.LogLevel.Information)
 	.build();
 
 window.g_connection = connection;
 
-var stateConversion = {0: 'connecting', 1: 'connected', 2: 'reconnecting', 4: 'disconnected'};
+const stateConversion = {0: 'connecting', 1: 'connected', 2: 'reconnecting', 4: 'disconnected'};
 let myId = "";
-let app;
 let name = "";
+let app;
+let connectionAttempts = 0;
 
+async function start() {
+    try {
+        await connection.start();
+		console.log("Successfully connected to hub");
+    } catch (err) {
+		console.log(err);
+		console.log("Retrying in 5 seconds");
+		connectionAttempts += 1;
+        if(connectionAttempts < 10) setTimeout(() => start(), 5000);
+    }
+}; 
 
 async function waitForConnection() {
 	let attempts = 0;
@@ -28,6 +42,12 @@ async function waitForConnection() {
 	return connection;
 }
 
+async function wait(seconds) {
+	return new Promise((resolve, reject) => {
+		setTimeout(resolve, seconds * 1000);
+	});
+}
+
 function getName() {
 	let name = sessionStorage ? sessionStorage.getItem('name') : "";
 	if(!name) {
@@ -35,6 +55,25 @@ function getName() {
 		sessionStorage && sessionStorage.setItem('name', name);
 	}
 	return name;
+}
+
+function setUser(userId, username, userObject) {
+	username && addName(userId, username);
+	currentUsers.update(currentUsers => {
+		if (userObject) {
+			currentUsers[userId] = userObject;
+		} else {
+			delete currentUsers[userId];
+		}
+		return currentUsers;
+	});
+}
+
+function addName(userId, username) {
+	nameService.update(names => {
+		names[userId] = username;
+		return names;
+	});
 }
 
 if (window.location.hash.indexOf("#race")===0) {
@@ -53,99 +92,53 @@ if (window.location.hash.indexOf("#race")===0) {
 	});
 }
 
-let attempts = 0;
-async function start() {
-    try {
-        await connection.start();
-		console.log("Successfully connected to hub");
-    } catch (err) {
-		console.log(err);
-		console.log("Retrying in 5 seconds");
-		attempts += 1;
-        if(attempts < 10) setTimeout(() => start(), 5000);
-    }
-}; 
-
-async function wait(seconds) {
-	return new Promise((resolve, reject) => {
-		setTimeout(resolve, seconds * 1000);
-	});
-}
-
 connection.onclose(async () => {
     await start();
 });
 
+function setUpConnectionHandlers(){
+	connection.on("UserDisconnected", function(userId) {
+		console.log(`UserDisconnected: ${userId}`);
+	});
+
+	connection.on("ReceiveMessage", function (message) {
+		console.log(`Received message: ${message}`);
+	});
+
+	connection.on("YouAre", userId => {
+		myId = userId;
+		setUser(userId, name, { id: userId, progress: 0, name, });
+
+		app.myId && app.$set({myId});
+		console.log(`YouAre: ${userId}`);
+	});
+
+	connection.on("UserJoined", (userId, username) => {
+		setUser(userId, username, { id: userId, progress: 0 });
+		if(myId) {
+			waitForConnection().then(connection => connection.invoke("CallUser", userId, "ImHere", JSON.stringify({ userId: myId, username: name, })));
+		}
+		console.log(`User: ${userId} joined`);
+	});
+
+	connection.on("UserLeft", userId => {
+		setUser(userId, undefined, undefined);
+		console.log(`User: ${userId} left`);
+	});
+
+	connection.on("ImHere", userstring => {
+		let { userId, username } = JSON.parse(userstring);
+		setUser(userId, username, { id: userId, progress: 0 });
+		console.log(`User: ${userId} ${username} ${userstring} says hello`);
+	});
+
+	connection.on("UserProgress", (userId, progress) => {
+		setUser(userId, undefined, { id: userId, progress: progress, });
+		console.log(`User: ${userId} joined`);
+	});
+}
+
+setUpConnectionHandlers();
 start();
-
-connection.on("ReceiveMessage", function (message) {
-    console.log(`Received message: ${message}`);
-});
-
-connection.on("YouAre", userId => {
-	myId = userId;
-	addName(myId, name);
-	currentUsers.update(currentUsers => {
-		currentUsers[userId] = { id: userId, progress: 0, name, };
-		return currentUsers;
-	});
-	app.myId && app.$set({myId});
-	console.log(`YouAre: ${userId}`);
-});
-
-connection.on("UserJoined", (userId, username) => {
-	addName(userId, username);
-	currentUsers.update(currentUsers => {
-		currentUsers[userId] = { id: userId, progress: 0 };
-		return currentUsers;
-	});
-	if(myId) {
-		waitForConnection().then(connection => connection.invoke("CallUser", userId, "ImHere", JSON.stringify({ userId: myId, username: name, })));
-	}
-	console.log(`User: ${userId} joined`);
-});
-
-function addName(userId, username) {
-	nameService.update(names => {
-		names[userId] = username;
-		return names;
-	});
-}
-connection.on("ImHere", userstring => {
-	let { userId, username } = JSON.parse(userstring);
-	addName(userId, username);	
-	currentUsers.update(currentUsers => {
-		currentUsers[userId] = { id: userId, progress: 0 };
-		return currentUsers;
-	});
-	console.log(`User: ${userId} ${username} ${userstring} says hello`);
-});
-
-connection.on("UserProgress", (userId, progress) => {
-	currentUsers.update(currentUsers => {
-		currentUsers[userId] = { id: userId, progress: progress, };
-		return currentUsers;
-	});
-	console.log(`User: ${userId} joined`);
-});
-
-connection.on("UserLeft", userId => {
-	currentUsers.update(currentUsers => {
-		currentUsers[userId] = undefined;
-		return currentUsers;
-	});
-	console.log(`User: ${userId} left`);
-});
-
-window.g_test2 = async function(message){
-	try {
-		await connection.invoke("JoinGroup", "test-group");
-	} catch (err) {
-		return console.error(err.toString());
-	};
-}
-
-
-
 
 export default app;

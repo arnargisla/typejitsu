@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR;
+using System;
 using System.Threading.Tasks;
 
 namespace SignalRChat.Hubs
@@ -9,6 +10,12 @@ namespace SignalRChat.Hubs
         {
             await Clients.Caller.SendAsync("YouAre", Context.ConnectionId);
             await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception exception)
+        {
+            await Clients.Others.SendAsync("UserLeft", Context.ConnectionId);
+            await base.OnDisconnectedAsync(exception);
         }
 
         public async Task SendMessage(string message)

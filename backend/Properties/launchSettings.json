@@ -15,12 +15,20 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "typedojo": {
+    "development": {
       "commandName": "Project",
       "launchBrowser": false,
-      "applicationUrl": "http://46.101.48.35:80;",
+      "applicationUrl": "http://localhost:8888;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "production": {
+      "commandName": "Project",
+      "launchBrowser": false,
+      "applicationUrl": "http://46.101.48.35:8888;",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Release"
       }
     }
   }
