@@ -18,7 +18,7 @@
     "typedojo": {
       "commandName": "Project",
       "launchBrowser": false,
-      "applicationUrl": "http://http://46.101.48.35:80;",
+      "applicationUrl": "http://46.101.48.35:80;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
