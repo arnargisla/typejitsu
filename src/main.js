@@ -4,7 +4,7 @@ import * as signalR from '@aspnet/signalr';
 import { currentUsers, nameService } from './stores.js';
 
 const connection = new signalR.HubConnectionBuilder()
-	.withUrl("http://localhost:8888/raceHub")
+	.withUrl("http://46.101.48.35/raceHub")
     .configureLogging(signalR.LogLevel.Information)
 	.build();
 
@@ -18,10 +18,12 @@ let name = "";
 
 async function waitForConnection() {
 	let attempts = 0;
-	const maxAttempts = 5;
+	const maxAttempts = 15;
 	while(stateConversion[connection.connectionState] !== "connected" && attempts < maxAttempts) {
+		await wait(0.2 + attempts * 0.5);	
+		console.log("tryingtoconnect")	
 		attempts++;
-		await wait(5);
+
 	}
 	return connection;
 }
