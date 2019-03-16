@@ -20,10 +20,20 @@ span{
 
 
 <script>
+    import { tweened } from 'svelte/motion';
+	import { cubicOut } from 'svelte/easing';
+
+	const progressTweened = tweened(0, {
+		duration: 400,
+		easing: cubicOut
+	});
     export let progress = 0;
+    $: {
+        progressTweened.set(Math.floor(progress * 100))
+    }
 </script>
 
 
 <div >
-    <span class="completed" style="width: {Math.floor(progress * 100) }%"></span>
+    <span class="completed" style="width: {$progressTweened}%"></span>
 </div>
