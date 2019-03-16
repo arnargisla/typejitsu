@@ -4,7 +4,7 @@ import * as signalR from '@aspnet/signalr';
 import { currentUsers } from './stores.js';
 
 const connection = new signalR.HubConnectionBuilder()
-	.withUrl("https://localhost:7000/raceHub")
+	.withUrl("http://localhost:8888/raceHub")
     .configureLogging(signalR.LogLevel.Information)
 	.build();
 
@@ -40,7 +40,7 @@ if (window.location.hash.indexOf("#race")===0) {
 	});
 }
 
-
+let attempts = 0;
 async function start() {
     try {
         await connection.start();
@@ -48,7 +48,8 @@ async function start() {
     } catch (err) {
 		console.log(err);
 		console.log("Retrying in 5 seconds");
-        setTimeout(() => start(), 5000);
+		attempts += 1;
+        if(attempts < 10) setTimeout(() => start(), 5000);
     }
 }; 
 

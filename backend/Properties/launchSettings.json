@@ -17,8 +17,8 @@
     },
     "typedojo": {
       "commandName": "Project",
-      "launchBrowser": true,
-      "applicationUrl": "https://localhost:7000;",
+      "launchBrowser": false,
+      "applicationUrl": "http://localhost:8888;",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
