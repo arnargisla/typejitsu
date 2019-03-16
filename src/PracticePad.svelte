@@ -12,17 +12,32 @@
 <script>
 	import TargetText from './TargetText.svelte'
 	
-	export let problemSet = ["Example text to write!"];
+	export let problemSet = {
+		name: "Example set",
+		problems: ["Example text to write!"],
+	};
+
+	export let setProblemIndex = function(index) {
+		currentProblemIndex = index;
+	}
 	
+	let debug = false;
+
 	let currentProblemIndex = 0;
-	let currentProblem = problemSet[currentProblemIndex];
-	let remainingText = currentProblem;
+	
+	let currentProblem = problemSet.problems[currentProblemIndex];
+	let	remainingText = currentProblem;
 	let confirmedText = "";
 	let pendingText = "";
-	let debug = false;
-	let setCompleted = false;
-		
+
+	$: {
+		currentProblem = problemSet.problems[currentProblemIndex];
+		remainingText = currentProblem;
+		confirmedText = "";
+		pendingText = "";
+	}	
 	$: writtenText = `${confirmedText}${pendingText}`;
+	$: setCompleted = (currentProblemIndex === problemSet.problems.length-1) && remainingText === "";
 	
 	function handleInput(e){
 		const pendingAndRemainingMatch = pendingText === remainingText;
@@ -41,20 +56,16 @@
 			generateNewProblem();
 		}
 	}
+
 	
 	function generateNewProblem() {
-		currentProblemIndex += 1;
-		if (currentProblemIndex > problemSet.length-1) {
-			setCompleted = true;
-		} else {
-			currentProblem= problemSet[currentProblemIndex];
-			remainingText = currentProblem;
-			confirmedText = "";
-			pendingText = "";
+		console.log(setCompleted, currentProblemIndex, problemSet.problems.length-1);
+		
+		if(!setCompleted){
+			currentProblemIndex += 1;
 		}
 	}
 </script>
-
 
 {#if setCompleted}
 	<strong>Congratulations, you finished the problem set!</strong>
@@ -62,6 +73,7 @@
 	<TargetText textToWrite={currentProblem} writtenText={writtenText} />
 	<br />
 	<input 
+		autofocus
 		type=text 
 		placeholder={confirmedText === "" ? `${currentProblem.slice(0,10)}...` : "" } 
 		on:input={handleInput} 
@@ -76,6 +88,7 @@
 		<div>writtenText: "{writtenText}"</div>
 		<div>confirmedText: "{confirmedText}"</div>
 		<div>pendingText: "{pendingText}"</div>
+		<div>currentProblem: "{currentProblem}"</div>
 		{/if}
 	</div>
 {/if}
