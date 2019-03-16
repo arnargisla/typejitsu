@@ -12,6 +12,7 @@ div {
 
 <script>
     import ProgressBar from './ProgressBar.svelte';
+	import { nameService } from './stores.js';
     export let user = {};
     export let isme = false;
 
@@ -24,6 +25,6 @@ div {
 
 
 <div class:me={isme}>
-    {user.name ? user.name : user.id} {leftPad((user.progress*100).toFixed(1), 5)}%
+    {$nameService[user.id] ? $nameService[user.id] : user.id} {leftPad((user.progress*100).toFixed(1), 5)}%
     <ProgressBar progress={user.progress} />
 </div>

@@ -1,7 +1,7 @@
 import App from './App.svelte';
 import RacingApp from './RacingApp.svelte';
 import * as signalR from '@aspnet/signalr';
-import { currentUsers } from './stores.js';
+import { currentUsers, nameService } from './stores.js';
 
 const connection = new signalR.HubConnectionBuilder()
 	.withUrl("http://localhost:8888/raceHub")
@@ -82,6 +82,7 @@ connection.on("ReceiveMessage", function (message) {
 
 connection.on("YouAre", userId => {
 	myId = userId;
+	addName(myId, name);
 	currentUsers.update(currentUsers => {
 		currentUsers[userId] = { id: userId, progress: 0, name, };
 		return currentUsers;
@@ -90,23 +91,32 @@ connection.on("YouAre", userId => {
 	console.log(`YouAre: ${userId}`);
 });
 
-connection.on("UserJoined", userId => {
+connection.on("UserJoined", (userId, username) => {
+	addName(userId, username);
 	currentUsers.update(currentUsers => {
-		currentUsers[userId] = { id: userId, progress: 0, };
+		currentUsers[userId] = { id: userId, progress: 0 };
 		return currentUsers;
 	});
 	if(myId) {
-		waitForConnection().then(connection => connection.invoke("CallUser", userId, "ImHere", myId));
+		waitForConnection().then(connection => connection.invoke("CallUser", userId, "ImHere", JSON.stringify({ userId: myId, username: name, })));
 	}
 	console.log(`User: ${userId} joined`);
 });
 
-connection.on("ImHere", userId => {
+function addName(userId, username) {
+	nameService.update(names => {
+		names[userId] = username;
+		return names;
+	});
+}
+connection.on("ImHere", userstring => {
+	let { userId, username } = JSON.parse(userstring);
+	addName(userId, username);	
 	currentUsers.update(currentUsers => {
-		currentUsers[userId] = { id: userId, progress: 0, };
+		currentUsers[userId] = { id: userId, progress: 0 };
 		return currentUsers;
 	});
-	console.log(`User: ${userId} says hello`);
+	console.log(`User: ${userId} ${username} ${userstring} says hello`);
 });
 
 connection.on("UserProgress", (userId, progress) => {

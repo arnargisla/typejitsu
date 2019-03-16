@@ -16,7 +16,7 @@ a {
 <script>
 	import PracticePad from './PracticePad.svelte';
 	import UserStats from './UserStats.svelte';
-	import { currentUsers } from './stores.js';
+	import { currentUsers, nameService } from './stores.js';
 
 
 	export let racingGroup = "defaultRaceGroup";
@@ -49,7 +49,7 @@ a {
 
 	let currentProblemSet = problemSets[0];
 	let practicePad;
-	const joinRaceGroup = signalrConnection().then(connection => connection.invoke("joinGroup", racingGroup));
+	const joinRaceGroup = signalrConnection().then(connection => connection.invoke("joinGroup", racingGroup, $nameService[myId] ? $nameService[myId] : ""));
 
 	function handleClick(e, problemIndex) {
 		practicePad.setProblemIndex(0);

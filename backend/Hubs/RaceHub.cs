@@ -16,12 +16,12 @@ namespace SignalRChat.Hubs
             await Clients.All.SendAsync("ReceiveMessage", message);
         }
 
-        public async Task JoinGroup(string groupName)
+        public async Task JoinGroup(string groupName, string username)
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, groupName);
             await Task.WhenAll(
                 Clients.OthersInGroup(groupName).SendAsync("ReceiveMessage", $"{Context.ConnectionId} has joined the group {groupName}."),
-                Clients.OthersInGroup(groupName).SendAsync("UserJoined", Context.ConnectionId));
+                Clients.OthersInGroup(groupName).SendAsync("UserJoined", Context.ConnectionId, username));
         }
 
         public async Task LeaveGroup(string groupName)
