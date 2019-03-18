@@ -50,7 +50,7 @@ a {
 </script>
 
 <div class="main">
-	<h2>Welcome to TypeDojo</h2>
+	<h2>Welcome to TypeJitsu</h2>
 	<div>
 		{#each problemSets as problemSet, i}
 		<a href="#{problemSet.name}" on:click={ e => handleClick(e, i) }>{problemSet.name}</a>

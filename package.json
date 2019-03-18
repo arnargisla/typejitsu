@@ -15,7 +15,7 @@
     "build": "rollup -c && cp public/* backend/wwwroot/",
     "autobuild": "rollup -c -w",
     "dev": "run-p start:dev autobuild",
-    "dev-server": "dotnet run -p backend/typedojo.csproj",
+    "dev-server": "dotnet run -p backend/typejitsu.csproj",
     "start": "sirv public",
     "start:dev": "sirv public --dev"
   },

@@ -65,7 +65,7 @@ a {
 
 <div class="main">
 	<strong>Master status: {masterStatus}</strong>
-	<h2>🏍️ Welcome to Racing in TypeDojo</h2>
+	<h2>🏍️ Welcome to Racing in TypeJitsu</h2>
 
 	{#await joinRaceGroup}
 		<p>...connecting to racing group</p>

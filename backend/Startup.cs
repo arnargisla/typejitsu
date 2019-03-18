@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalRChat.Hubs;
 
-namespace typedojo
+namespace typejitsu
 {
     public class Startup
     {
