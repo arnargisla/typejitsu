@@ -22,6 +22,7 @@ a {
 	export let racingGroup = "defaultRaceGroup";
 	export let signalrConnection;
 	export let myId = "";
+	export let masterStatus = false;
 		
 	const problemSets = [
 		{
@@ -49,7 +50,7 @@ a {
 
 	let currentProblemSet = problemSets[0];
 	let practicePad;
-	const joinRaceGroup = signalrConnection().then(connection => connection.invoke("joinGroup", racingGroup, $nameService[myId] ? $nameService[myId] : ""));
+	export let joinRaceGroup;
 
 	function handleClick(e, problemIndex) {
 		practicePad.setProblemIndex(0);
@@ -63,6 +64,7 @@ a {
 </script>
 
 <div class="main">
+	<strong>Master status: {masterStatus}</strong>
 	<h2>🏍️ Welcome to Racing in TypeDojo</h2>
 
 	{#await joinRaceGroup}

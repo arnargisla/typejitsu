@@ -1,0 +1,15 @@
+Add stats:
+  Words Per Minute: wpm
+  Errors: Number of wrongly characters
+  Correct Chars: Number of correctly typed characters
+  Total Characters: Total typed characters
+  Accuracy: percentage of total chacaracters typed that are correct;
+Add code indentation support
+Add ability to compete, have a timer, some coordination
+  User joins, after X amount of seconds a game starts
+  The progress board turns into a scoreboard.
+  When all users are finished a new challenge is generated.
+Add persistance
+  Persist statistics
+Add authentication
+  User can log in and see and accumulate stats

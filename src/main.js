@@ -1,7 +1,7 @@
 import App from './App.svelte';
 import RacingApp from './RacingApp.svelte';
 import * as signalR from '@aspnet/signalr';
-import { currentUsers, nameService } from './stores.js';
+import { currentUsers, nameService, userStartTimeService } from './stores.js';
 
 const signalRUrl = 
 	window.location.href.indexOf("localhost") !== -1 ? "localhost:8888" : "46.101.48.35";
@@ -14,9 +14,12 @@ window.g_connection = connection;
 
 const stateConversion = {0: 'connecting', 1: 'connected', 2: 'reconnecting', 4: 'disconnected'};
 let myId = "";
+let myStartTime = undefined;
 let name = "";
 let app;
 let connectionAttempts = 0;
+let masterStatus = false;
+const racingGroup = window.location.hash.split("=")[1];
 
 async function start() {
     try {
@@ -57,8 +60,16 @@ function getName() {
 	return name;
 }
 
-function setUser(userId, username, userObject) {
+function setUser(userId, username, userObject, starttime) {
 	username && addName(userId, username);
+	starttime && setUserStartTime(userId, starttime);
+	if(userObject === undefined) {
+		userStartTimeService.update(startTimes => {
+			delete startTimes[userId];
+			return startTimes;
+		});
+		console.log(`removed user time: ${userId}`);
+	}
 	currentUsers.update(currentUsers => {
 		if (userObject) {
 			currentUsers[userId] = userObject;
@@ -76,14 +87,27 @@ function addName(userId, username) {
 	});
 }
 
+function setUserStartTime(userId, startTime) {
+	console.log(`${startTime} Setting users ${userId} start time to `);
+	console.log(`${myStartTime} My start time`)
+	userStartTimeService.update(startTimes => {
+		startTimes[userId] = startTime;
+		return startTimes;
+	});
+}
 if (window.location.hash.indexOf("#race")===0) {
 	name = getName();
+	const joinRaceGroup = waitForConnection().then(connection => {
+		connection.invoke("joinGroup", racingGroup, name, `${myStartTime}`);
+	});
 	app	= new RacingApp({
 		target: document.body,
 		props: {
 			signalrConnection: waitForConnection,
-			racingGroup: window.location.hash.split("=")[1],
+			racingGroup,
 			myId: "me",
+			joinRaceGroup,
+			masterStatus,
 		}
 	});
 } else {
@@ -96,6 +120,11 @@ connection.onclose(async () => {
     await start();
 });
 
+function setMasterStatus(newMasterStatus) {
+	masterStatus = newMasterStatus;
+	app.$set({ masterStatus: masterStatus});
+}
+
 function setUpConnectionHandlers(){
 	connection.on("UserDisconnected", function(userId) {
 		console.log(`UserDisconnected: ${userId}`);
@@ -107,18 +136,34 @@ function setUpConnectionHandlers(){
 
 	connection.on("YouAre", userId => {
 		myId = userId;
-		setUser(userId, name, { id: userId, progress: 0, name, });
+		const newDate = (new Date());
+		myStartTime = `${newDate.getTime()}-${newDate.getUTCMilliseconds()}-${Math.random()}`;
+		setUser(userId, name, { id: userId, progress: 0, name, }, myStartTime);
 
 		app.myId && app.$set({myId});
 		console.log(`YouAre: ${userId}`);
+
+		setTimeout(()=>{
+			userStartTimeService.subscribe(startTimes => {
+				let pendingMaster =true;
+				for(let userid in startTimes) {
+					console.log(userid, startTimes[userid]);
+					console.log(`${userid} !== ${myId} && ${startTimes[userid]} < ${myStartTime} = ${startTimes[userid] < myStartTime}`);
+					if(userid !== myId && startTimes[userid] < myStartTime) {
+						pendingMaster = false;
+					}
+				}
+				if (masterStatus !== pendingMaster) setMasterStatus(pendingMaster);
+			});
+		}, 3000)
 	});
 
-	connection.on("UserJoined", (userId, username) => {
-		setUser(userId, username, { id: userId, progress: 0 });
-		if(myId) {
-			waitForConnection().then(connection => connection.invoke("CallUser", userId, "ImHere", JSON.stringify({ userId: myId, username: name, })));
+	connection.on("UserJoined", (userId, username, startTime) => {
+		setUser(userId, username, { id: userId, progress: 0 }, startTime);
+		if ( myId ) {
+			waitForConnection().then(connection => connection.invoke("CallUser", userId, "ImHere", JSON.stringify({ userId: myId, username: name, startTime: myStartTime })));
 		}
-		console.log(`User: ${userId} joined`);
+		console.log(`User: ${userId} ${username} ${startTime} joined`);
 	});
 
 	connection.on("UserLeft", userId => {
@@ -127,8 +172,8 @@ function setUpConnectionHandlers(){
 	});
 
 	connection.on("ImHere", userstring => {
-		let { userId, username } = JSON.parse(userstring);
-		setUser(userId, username, { id: userId, progress: 0 });
+		let { userId, username, startTime } = JSON.parse(userstring);
+		setUser(userId, username, { id: userId, progress: 0 }, startTime);
 		console.log(`User: ${userId} ${username} ${userstring} says hello`);
 	});
 
