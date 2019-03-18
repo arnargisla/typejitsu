@@ -3,7 +3,7 @@ import RacingApp from './RacingApp.svelte';
 import * as signalR from '@aspnet/signalr';
 import { currentUsers, nameService, userStartTimeService } from './stores.js';
 
-const signalRUrl = 
+const signalRUrl =
 	window.location.href.indexOf("localhost") !== -1 ? "localhost:8888" : "46.101.48.35";
 const connection = new signalR.HubConnectionBuilder()
 	.withUrl(`http://${signalRUrl}/raceHub`)
@@ -31,14 +31,14 @@ async function start() {
 		connectionAttempts += 1;
         if(connectionAttempts < 10) setTimeout(() => start(), 5000);
     }
-}; 
+};
 
 async function waitForConnection() {
 	let attempts = 0;
 	const maxAttempts = 15;
 	while(stateConversion[connection.connectionState] !== "connected" && attempts < maxAttempts) {
-		await wait(0.2 + attempts * 0.5);	
-		console.log("tryingtoconnect")	
+		await wait(0.2 + attempts * 0.5);
+		console.log("tryingtoconnect")
 		attempts++;
 
 	}
@@ -54,15 +54,15 @@ async function wait(seconds) {
 function getName() {
 	let name = sessionStorage ? sessionStorage.getItem('name') : "";
 	if(!name) {
-		name = prompt("What is your name?"); 
+		name = prompt("What is your name?");
 		sessionStorage && sessionStorage.setItem('name', name);
 	}
 	return name;
 }
 
-function setUser(userId, username, userObject, starttime) {
+function setUser(userId, username, userObject, startTime) {
 	username && addName(userId, username);
-	starttime && setUserStartTime(userId, starttime);
+	startTime && setUserStartTime(userId, startTime);
 	if(userObject === undefined) {
 		userStartTimeService.update(startTimes => {
 			delete startTimes[userId];
