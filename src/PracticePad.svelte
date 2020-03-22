@@ -11,61 +11,58 @@
 
 <script>
 	import TargetText from './TargetText.svelte'
-	
-	export let problemSet = {
-		name: "Example set",
-		problems: ["Example text to write!"],
-	};
 
-	export let onprogress = () => {};
-
-	export let setProblemIndex = function(index) {
-		currentProblemIndex = index;
-	}
+    export let onprogress = () => {};
+    export let onProblemCompleted = () => console.log("onProblemCompleted");
+	export let currentProblem = "Example problem";
+    export let setCompleted = false;
+    export let masterStatus = false;
+    
+    export const setCurrentProblem = problem => {
+        currentProblem = problem;
+    }
 	
 	let debug = false;
 
 	let currentProblemIndex = 0;
 	
-	let currentProblem = problemSet.problems[currentProblemIndex];
+    
 	let	remainingText = currentProblem;
 	let confirmedText = "";
-	let pendingText = "";
+    let pendingText = "";
 
 	$: {
-		currentProblem = problemSet.problems[currentProblemIndex];
 		remainingText = currentProblem;
 		confirmedText = "";
-		pendingText = "";
-	}	
+        console.log("update everything", `currentproblem: ${currentProblem}`);
+	}
 	$: writtenText = `${confirmedText}${pendingText}`;
-	$: setCompleted = (currentProblemIndex === problemSet.problems.length-1) && remainingText === "";
 	
 	function handleInput(e){
-		const pendingAndRemainingMatch = pendingText === remainingText;
-		if (e.data === " " || pendingAndRemainingMatch) {
-			const wordCorrect = pendingAndRemainingMatch || (pendingText === remainingText.substring(0, pendingText.length));
+        const pendingTextWithNewChar = `${pendingText}${e.data}`
+        const pendingAndRemainingMatch = (pendingTextWithNewChar === remainingText);
+
+        if (pendingAndRemainingMatch) {
+            remainingText = "";
+            confirmedText = currentProblem;
+            pendingText = "";
+            onprogress(1.0);
+        } else if (e.data === " ") {
+            const pendingWithSpace = `${pendingText} `;
+			const wordCorrect = pendingWithSpace.length > 0 && pendingAndRemainingMatch || (pendingWithSpace === remainingText.substring(0, pendingWithSpace.length));
+
 			if (wordCorrect) {
-				remainingText = remainingText.slice(pendingText.length);
-			  confirmedText = `${confirmedText}${pendingText}`;
-			  pendingText = "";
-			  onprogress(confirmedText.length / currentProblem.length);
+                remainingText = remainingText.slice(pendingWithSpace.length);
+                confirmedText = `${confirmedText}${pendingWithSpace}`;
+                pendingText = "";
+                onprogress(confirmedText.length / currentProblem.length);
 			}
 		}
 	}
 	
 	function handleKeyUp(e) {
 		if (e.code === "Enter" && remainingText === "") {
-			generateNewProblem();
-		}
-	}
-
-	
-	function generateNewProblem() {
-		console.log(setCompleted, currentProblemIndex, problemSet.problems.length-1);
-		
-		if(!setCompleted){
-			currentProblemIndex += 1;
+            onProblemCompleted();
 		}
 	}
 </script>
@@ -75,23 +72,27 @@
 {:else}
 	<TargetText textToWrite={currentProblem} writtenText={writtenText} />
 	<br />
-	<input 
-		autofocus
+	<input
 		type=text 
 		placeholder={confirmedText === "" ? `${currentProblem.slice(0,10)}...` : "" } 
 		on:input={handleInput} 
 		on:keyup={handleKeyUp} 
 		bind:value={pendingText}/>
+
 	<div>
 		{#if remainingText === ""}
-			<div class="complete" >Complete! Hit Return &crarr; for another challenge!</div>
+		    {#if masterStatus}
+			    <div class="complete" >Complete! Hit Return &crarr; for another challenge!</div>
+		    {:else}
+			    <div class="complete" >Complete!</div>
+            {/if}
 		{/if}
 		{#if debug}
-		<div>remainingText: "{remainingText}"</div>
-		<div>writtenText: "{writtenText}"</div>
-		<div>confirmedText: "{confirmedText}"</div>
-		<div>pendingText: "{pendingText}"</div>
-		<div>currentProblem: "{currentProblem}"</div>
+            <div>remainingText: "{remainingText}"</div>
+            <div>writtenText: "{writtenText}"</div>
+            <div>confirmedText: "{confirmedText}"</div>
+            <div>pendingText: "{pendingText}"</div>
+            <div>currentProblem: "{currentProblem}"</div>
 		{/if}
 	</div>
 {/if}

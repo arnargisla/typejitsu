@@ -4,6 +4,7 @@ import commonjs from 'rollup-plugin-commonjs';
 import { terser } from 'rollup-plugin-terser';
 
 const production = !process.env.ROLLUP_WATCH;
+const outputFolder = "backend/wwwroot"
 
 export default {
 	input: 'src/main.js',
@@ -11,7 +12,7 @@ export default {
 		sourcemap: true,
 		format: 'iife',
 		name: 'app',
-		file: 'public/bundle.js'
+		file: `${outputFolder}/bundle.js`
 	},
 	plugins: [
 		svelte({
@@ -20,7 +21,7 @@ export default {
 			// we'll extract any component CSS out into
 			// a separate file  better for performance
 			css: css => {
-				css.write('public/bundle.css');
+				css.write(`${outputFolder}/bundle.css`);
 			}
 		}),
 

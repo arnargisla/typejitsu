@@ -1,12 +1,12 @@
 import App from './App.svelte';
 import RacingApp from './RacingApp.svelte';
 import * as signalR from '@aspnet/signalr';
-import { currentUsers, nameService, userStartTimeService } from './stores.js';
+import { currentUsers, nameService, userStartTimeService, currentProblemStore } from './stores.js';
 
-const signalRUrl =
-	window.location.href.indexOf("localhost") !== -1 ? "localhost:8888" : "46.101.48.35";
+const signalRUrl = window.location.origin;
+    
 const connection = new signalR.HubConnectionBuilder()
-	.withUrl(`http://${signalRUrl}/raceHub`)
+	.withUrl(`${signalRUrl}/raceHub`)
     .configureLogging(signalR.LogLevel.Information)
 	.build();
 
@@ -60,6 +60,16 @@ function getName() {
 	return name;
 }
 
+function resetProgress() {
+    currentUsers.update(currentUsers => {
+        Object.keys(currentUsers).map(userId => {
+            currentUsers[userId].progress = 0;
+            return currentUsers[userId];
+        });
+        return currentUsers;
+    });
+}
+
 function setUser(userId, username, userObject, startTime) {
 	username && addName(userId, username);
 	startTime && setUserStartTime(userId, startTime);
@@ -80,6 +90,10 @@ function setUser(userId, username, userObject, startTime) {
 	});
 }
 
+function setProblem(problem) {
+    currentProblemStore.set(problem);
+}
+
 function addName(userId, username) {
 	nameService.update(names => {
 		names[userId] = username;
@@ -95,6 +109,7 @@ function setUserStartTime(userId, startTime) {
 		return startTimes;
 	});
 }
+
 if (window.location.hash.indexOf("#race")===0) {
 	name = getName();
 	const joinRaceGroup = waitForConnection().then(connection => {
@@ -108,8 +123,8 @@ if (window.location.hash.indexOf("#race")===0) {
 			myId: "me",
 			joinRaceGroup,
 			masterStatus,
-		}
-	});
+		},
+    });
 } else {
 	app	= new App({
 		target: document.body,
@@ -122,7 +137,7 @@ connection.onclose(async () => {
 
 function setMasterStatus(newMasterStatus) {
 	masterStatus = newMasterStatus;
-	app.$set({ masterStatus: masterStatus});
+	app.$set({ masterStatus: masterStatus });
 }
 
 function setUpConnectionHandlers(){
@@ -140,7 +155,7 @@ function setUpConnectionHandlers(){
 		myStartTime = `${newDate.getTime()}-${newDate.getUTCMilliseconds()}-${Math.random()}`;
 		setUser(userId, name, { id: userId, progress: 0, name, }, myStartTime);
 
-		app.myId && app.$set({myId});
+		app.$set({myId});
 		console.log(`YouAre: ${userId}`);
 
 		setTimeout(()=>{
@@ -155,7 +170,7 @@ function setUpConnectionHandlers(){
 				}
 				if (masterStatus !== pendingMaster) setMasterStatus(pendingMaster);
 			});
-		}, 3000)
+		}, 3000);
 	});
 
 	connection.on("UserJoined", (userId, username, startTime) => {
@@ -180,7 +195,14 @@ function setUpConnectionHandlers(){
 	connection.on("UserProgress", (userId, progress) => {
 		setUser(userId, undefined, { id: userId, progress: progress, });
 		console.log(`User: ${userId} joined`);
-	});
+    });
+
+	connection.on("NewProblem", (userId, problem) => {
+        setProblem(problem);
+        resetProgress();
+		console.log(`New problem from ${userId}: "${problem}"`);
+    });
+    
 }
 
 setUpConnectionHandlers();

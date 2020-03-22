@@ -45,6 +45,13 @@ namespace SignalRChat.Hubs
                 Clients.Group(groupName).SendAsync("ReceiveMessage", $"{Context.ConnectionId} has set progress to {progress}."));
         }
 
+        public async Task NewProblem(string groupName, string problem)
+        {
+            await Task.WhenAll(
+                Clients.Group(groupName).SendAsync("NewProblem", Context.ConnectionId, problem),
+                Clients.Group(groupName).SendAsync("ReceiveMessage", $"{Context.ConnectionId} has set problem to {problem}."));
+        }
+
         public async Task CallUser(string userid, string functionName, string argument)
         {
             await Clients.Client(userid).SendAsync(functionName, argument);
