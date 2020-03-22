@@ -6,4 +6,8 @@ yarn.lock
 
 backend/bin
 backend/obj
+backend/wwwroot/*.css
+backend/wwwroot/*.css.map
+backend/wwwroot/*.js
+backend/wwwroot/*.js.map
 .vscode
