@@ -25,6 +25,6 @@ div {
 
 
 <div class:me={isme}>
-    {$nameService[user.id] ? $nameService[user.id] : user.id} {leftPad((user.progress*100).toFixed(1), 5)}%
+    {$nameService[user.id] ? $nameService[user.id] : user.id} {leftPad((user.progress*100).toFixed(1), 5)}% {user.wpm ? `wpm: ${user.wpm}` : ""}
     <ProgressBar progress={user.progress} />
 </div>

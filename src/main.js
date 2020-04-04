@@ -64,6 +64,7 @@ function resetProgress() {
     currentUsers.update(currentUsers => {
         Object.keys(currentUsers).map(userId => {
             currentUsers[userId].progress = 0;
+            currentUsers[userId].wpm = 0;
             return currentUsers[userId];
         });
         return currentUsers;
@@ -153,7 +154,7 @@ function setUpConnectionHandlers(){
 		myId = userId;
 		const newDate = (new Date());
 		myStartTime = `${newDate.getTime()}-${newDate.getUTCMilliseconds()}-${Math.random()}`;
-		setUser(userId, name, { id: userId, progress: 0, name, }, myStartTime);
+		setUser(userId, name, { id: userId, progress: 0, wpm: 0, name, }, myStartTime);
 
 		app.$set({myId});
 		console.log(`YouAre: ${userId}`);
@@ -174,7 +175,7 @@ function setUpConnectionHandlers(){
 	});
 
 	connection.on("UserJoined", (userId, username, startTime) => {
-		setUser(userId, username, { id: userId, progress: 0 }, startTime);
+		setUser(userId, username, { id: userId, progress: 0, wpm: 0 }, startTime);
 		if ( myId ) {
 			waitForConnection().then(connection => connection.invoke("CallUser", userId, "ImHere", JSON.stringify({ userId: myId, username: name, startTime: myStartTime })));
 		}
@@ -192,9 +193,8 @@ function setUpConnectionHandlers(){
 		console.log(`User: ${userId} ${username} ${userstring} says hello`);
 	});
 
-	connection.on("UserProgress", (userId, progress) => {
-		setUser(userId, undefined, { id: userId, progress: progress, });
-		console.log(`User: ${userId} joined`);
+	connection.on("UserProgress", (userId, progress, wpm) => {
+		setUser(userId, undefined, { id: userId, progress: progress, wpm, });
     });
 
 	connection.on("NewProblem", (userId, problem) => {

@@ -38,11 +38,11 @@ namespace SignalRChat.Hubs
                 Clients.OthersInGroup(groupName).SendAsync("UserLeft", Context.ConnectionId));
         }
 
-        public async Task Progress(string groupName, double progress)
+        public async Task Progress(string groupName, double progress, int wpm)
         {
             await Task.WhenAll(
-                Clients.Group(groupName).SendAsync("UserProgress", Context.ConnectionId, progress),
-                Clients.Group(groupName).SendAsync("ReceiveMessage", $"{Context.ConnectionId} has set progress to {progress}."));
+                Clients.Group(groupName).SendAsync("UserProgress", Context.ConnectionId, progress, wpm),
+                Clients.Group(groupName).SendAsync("ReceiveMessage", $"{Context.ConnectionId} has set progress to {progress}, wpm: {wpm}."));
         }
 
         public async Task NewProblem(string groupName, string problem)
